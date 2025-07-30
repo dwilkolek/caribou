@@ -1,4 +1,4 @@
-package eu.wilkolek.caribou;
+package eu.wilkolek.caribou.model;
 
 import io.pebbletemplates.pebble.extension.AbstractExtension;
 import io.pebbletemplates.pebble.extension.Function;
@@ -15,6 +15,6 @@ public class CaribouExtension extends AbstractExtension {
 
     @Override
     public Map<String, Function> getFunctions() {
-        return Map.of("ref", new RefExtension(store));
+        return Map.of("ref", new RefExtension(store), "source", new SourceExtension(store));
     }
 }

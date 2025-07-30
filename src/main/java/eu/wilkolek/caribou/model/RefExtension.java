@@ -1,5 +1,6 @@
-package eu.wilkolek.caribou;
+package eu.wilkolek.caribou.model;
 
+import eu.wilkolek.caribou.model.ModelStore;
 import io.pebbletemplates.pebble.extension.Function;
 import io.pebbletemplates.pebble.template.EvaluationContext;
 import io.pebbletemplates.pebble.template.PebbleTemplate;
@@ -12,7 +13,7 @@ public class RefExtension implements Function {
 
     private ModelStore store;
 
-    RefExtension(ModelStore store) {
+    public RefExtension(ModelStore store) {
         this.store = store;
     }
 

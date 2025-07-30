@@ -1,5 +1,7 @@
 package eu.wilkolek.caribou;
 
+import eu.wilkolek.caribou.model.Model;
+import eu.wilkolek.caribou.model.ModelStore;
 import io.pebbletemplates.pebble.PebbleEngine;
 import io.pebbletemplates.pebble.template.PebbleTemplate;
 
@@ -15,24 +17,18 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 public class Caribou {
-    String path = "/Users/dwilkolek/dev/caribou/sql_model";
 
-    public ModelStore readModel() throws IOException {
-        var modelStore = new ModelStore();
-        try (Stream<Path> stream = Files.walk(Path.of(path))) {
-            stream.filter(Files::isRegularFile).forEach(path -> {
-                modelStore.addModel(new Model(path));
-            });
-        }
+    private Path directory;
 
-        PebbleEngine engine = new PebbleEngine.Builder()
-                .extension(new CaribouExtension(modelStore))
-                .build();
-
-
-        modelStore.compileModels(engine);
-
-        return modelStore;
+    public Caribou(Path directory) {
+        this.directory = directory;
     }
+
+    public void execute() throws IOException {
+        var store = ModelStore.readModel(directory);
+        ExecutionPlan plan = new ExecutionPlan(store);
+        new SingleThreadModelExecutor(plan).execute();
+    }
+
 
 }
