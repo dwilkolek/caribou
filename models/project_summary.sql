@@ -1,6 +1,3 @@
-
--- File: models/project_summary.sql
-
 SELECT p.project_id,
        p.name AS project_name,
        d.department_name

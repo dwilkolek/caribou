@@ -1,34 +1,37 @@
 package eu.wilkolek.caribou;
 
+import eu.wilkolek.caribou.execution.ExecutionStepRunner;
+import eu.wilkolek.caribou.model.CaribouExtension;
 import eu.wilkolek.caribou.model.Model;
 import eu.wilkolek.caribou.model.ModelStore;
 import io.pebbletemplates.pebble.PebbleEngine;
-import io.pebbletemplates.pebble.template.PebbleTemplate;
 
 import java.io.IOException;
-import java.io.StringWriter;
-import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.stream.Stream;
 
 public class Caribou {
 
-    private Path directory;
+    private final PebbleEngine engine;
+    private final ModelStore store = new ModelStore();
 
-    public Caribou(Path directory) {
-        this.directory = directory;
+    Caribou() {
+        this(new PebbleEngine.Builder());
+    }
+    Caribou(PebbleEngine.Builder engine) {
+        this.engine = engine.extension(new CaribouExtension(store)).build();
     }
 
-    public void execute() throws IOException {
-        var store = ModelStore.readModel(directory);
-        ExecutionPlan plan = new ExecutionPlan(store);
-        new SingleThreadModelExecutor(plan).execute();
-    }
+    public void run(Path directory, ExecutionStepRunner stepRunner) throws IOException {
+        try (Stream<Path> stream = Files.walk(directory)) {
+            stream.filter(Files::isRegularFile).forEach(path -> {
+                store.addModel(new Model(path));
+            });
+        }
 
+        var plan = store.compileToExecutionPlan(engine);
+        plan.execute(stepRunner);
+    }
 
 }

@@ -1,33 +1,49 @@
 package eu.wilkolek.caribou;
 
-import eu.wilkolek.caribou.model.Model;
-import eu.wilkolek.caribou.model.ModelStore;
+import eu.wilkolek.caribou.execution.ExecutionStep;
+import eu.wilkolek.caribou.execution.ExecutionStepRunner;
 
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CompletableFuture;
 
 public class ExecutionPlan {
 
-    private List<Model> todo;
-    private final HashSet<Model> completed = new HashSet<>();
+    private List<ExecutionStep> steps = new ArrayList<>();
 
-    public ExecutionPlan(ModelStore store) {
-        this.todo = store.getModels();
+
+    public ExecutionPlan() {
     }
 
-    Model getNext() {
-        if (!hasNext()) {
-            return null;
+    synchronized public void addStep(ExecutionStep step) {
+        steps.add(step);
+    }
+
+    synchronized public void execute(ExecutionStepRunner stepRunner) {
+
+        var stepFutures = new HashMap<String, CompletableFuture<Void>>();
+        for (ExecutionStep step : steps) {
+            var future = new CompletableFuture<Void>();
+            stepFutures.put(step.getName(), future);
         }
-        return this.todo.stream().filter(model -> !completed.contains(model) && completed.containsAll(model.getDependencies())).findFirst().orElse(null);
-    }
+        ArrayList<CompletableFuture<Void>> allFutures = new ArrayList<>(stepFutures.values());
 
-    boolean hasNext() {
-        return todo.size() != completed.size();
-    }
+        for (ExecutionStep step : steps) {
+            var dependencies = step.getDependencies().stream().toList();
+            CompletableFuture[] stepDependencyFutures = new CompletableFuture[dependencies.size()];
+            for (int i = 0; i < dependencies.size(); i++) {
+                stepDependencyFutures[i] = stepFutures.get(dependencies.get(i));
+            }
+            CompletableFuture<Void> allDone = CompletableFuture.allOf(stepDependencyFutures);
+            allFutures.add(allDone.whenComplete((result, throwable) -> {
+                stepRunner.execute(step);
+                stepFutures.get(step.getName()).complete(null);
+            }));
+        }
+        CompletableFuture[] allFuturesArr = new CompletableFuture[allFutures.size()];
+        CompletableFuture.anyOf(allFutures.toArray(allFuturesArr)).join();
 
-    void complete(Model model) {
-        completed.add(model);
+        stepRunner.shutdown();
     }
 }

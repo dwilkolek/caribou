@@ -1,6 +1,3 @@
-
--- File: models/task_hierarchy.sql
-
 SELECT t.task_id,
        t.name AS task_name,
        t.status,

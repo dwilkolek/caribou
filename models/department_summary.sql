@@ -1,6 +1,3 @@
-
--- File: models/department_summary.sql
-
 SELECT d.department_id,
        d.name AS department_name,
        COUNT(e.employee_id) AS num_employees

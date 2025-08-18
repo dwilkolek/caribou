@@ -1,11 +1,9 @@
 package eu.wilkolek.caribou.model;
 
-import eu.wilkolek.caribou.model.ModelStore;
 import io.pebbletemplates.pebble.extension.Function;
 import io.pebbletemplates.pebble.template.EvaluationContext;
 import io.pebbletemplates.pebble.template.PebbleTemplate;
 
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 

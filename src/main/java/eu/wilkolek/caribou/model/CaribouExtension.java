@@ -15,6 +15,9 @@ public class CaribouExtension extends AbstractExtension {
 
     @Override
     public Map<String, Function> getFunctions() {
-        return Map.of("ref", new RefExtension(store), "source", new SourceExtension(store));
+        return Map.of(
+                "ref", new RefExtension(store),
+                "source", new SourceExtension(store)
+        );
     }
 }
